@@ -447,6 +447,52 @@ body {
 .feedback--bad { color: var(--hard); }
 .feedback--info { color: var(--muted); font-weight: 500; }
 
+/* ===== Варианты ответа (тест) ===== */
+.options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.option {
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  font: inherit;
+  font-size: 0.95rem;
+  text-align: center;
+  cursor: pointer;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.option:hover:not(:disabled) { border-color: var(--accent); }
+.option:disabled { cursor: default; }
+.option .katex { font-size: 1.02rem; }
+
+.option.is-correct {
+  border-color: var(--known);
+  background: var(--known-soft);
+  color: var(--known);
+  font-weight: 650;
+}
+
+.option.is-wrong {
+  border-color: var(--hard);
+  background: rgba(232, 89, 12, 0.1);
+  color: var(--hard);
+}
+
+@media (max-width: 480px) {
+  .options { grid-template-columns: 1fr; }
+}
+
 /* ===== Review ===== */
 .review__slot {
   display: flex;
