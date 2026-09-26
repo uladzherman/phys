@@ -8,6 +8,8 @@
   --accent-soft: #eaefff;
   --known: #2f9e44;
   --known-soft: #e7f6ea;
+  --hard: #e8590c;
+  --easy: #1c7ed6;
   --shadow: 0 10px 30px rgba(24, 39, 75, 0.08);
   --shadow-hover: 0 16px 40px rgba(24, 39, 75, 0.16);
   --radius: 18px;
@@ -51,7 +53,7 @@ body {
 .site-header {
   background: var(--bg-soft);
   border-bottom: 1px solid var(--border);
-  padding: 1.75rem 0 1.25rem;
+  padding: 1.5rem 0 1rem;
   position: sticky;
   top: 0;
   z-index: 20;
@@ -60,14 +62,58 @@ body {
 
 .site-header h1 {
   margin: 0;
-  font-size: clamp(1.35rem, 2.4vw, 1.9rem);
+  font-size: clamp(1.3rem, 2.3vw, 1.8rem);
   letter-spacing: -0.02em;
 }
 
 .subtitle {
-  margin: 0.25rem 0 1rem;
+  margin: 0.25rem 0 0.9rem;
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+}
+
+/* ===== Tabs ===== */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.9rem;
+}
+
+.tab {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  padding: 0.4rem 0.9rem;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.tab:hover { border-color: var(--accent); }
+
+.tab.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.tab__count {
+  display: inline-block;
+  min-width: 1.4em;
+  padding: 0 0.35em;
+  margin-left: 0.35em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  font-size: 0.8em;
+  text-align: center;
+}
+
+.tab:not(.is-active) .tab__count {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 /* ===== Progress ===== */
@@ -75,7 +121,6 @@ body {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1rem;
 }
 
 .progress__bar {
@@ -109,17 +154,14 @@ body {
   gap: 0.75rem;
   align-items: center;
   justify-content: space-between;
+  padding-top: 1.5rem;
 }
 
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
+.chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 
 .chip {
   border: 1px solid var(--border);
-  background: var(--bg);
+  background: var(--bg-soft);
   color: var(--text);
   padding: 0.35rem 0.8rem;
   border-radius: 999px;
@@ -148,7 +190,7 @@ body {
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: filter 0.15s, background 0.15s, color 0.15s;
+  transition: filter 0.15s, background 0.15s, color 0.15s, border-color 0.15s;
 }
 
 .btn:hover { filter: brightness(1.07); }
@@ -161,18 +203,21 @@ body {
 
 .btn--ghost:hover { border-color: var(--accent); color: var(--accent); filter: none; }
 
+.btn--hard { background: var(--hard); border-color: var(--hard); }
+.btn--easy { background: var(--easy); border-color: var(--easy); }
+
 /* ===== Grid ===== */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
   gap: 1rem;
-  padding: 1.5rem 0 2.5rem;
+  padding: 1.25rem 0 2.5rem;
 }
 
 /* ===== Card ===== */
 .card {
   perspective: 1200px;
-  height: 380px;
+  height: 300px;
   border: 0;
   padding: 0;
   background: transparent;
@@ -242,11 +287,11 @@ body {
 
 .formula {
   flex: 1 1 auto;
-  min-height: 56px;
+  min-height: 54px;
   display: grid;
   place-items: center;
   overflow: hidden;
-  padding: 0.35rem 0;
+  padding: 0.3rem 0;
 }
 
 .formula .katex-display { margin: 0; }
@@ -255,22 +300,14 @@ body {
 /* ===== Пояснение на обороте ===== */
 .card__meta {
   flex: 0 1 auto;
-  max-height: 58%;
+  max-height: 52%;
   overflow-y: auto;
   overflow-x: hidden;
-  margin-top: 0.4rem;
+  margin-top: 0.35rem;
   padding-right: 0.35rem;
   scrollbar-width: thin;
   overscroll-behavior: contain;
 }
-
-.cond {
-  margin: 0 0 0.45rem;
-  font-size: 0.74rem;
-  line-height: 1.38;
-}
-
-.cond strong { color: var(--accent); }
 
 .vars {
   margin: 0;
@@ -281,14 +318,13 @@ body {
 }
 
 .vars li {
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   line-height: 1.38;
   color: var(--muted);
 }
 
 .vars .sym { color: var(--text); }
 .vars .katex { font-size: 1em; }
-.vars .unit { color: var(--accent); white-space: nowrap; }
 
 .card__note {
   color: var(--muted);
@@ -302,20 +338,23 @@ body {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  flex-wrap: wrap;
+  margin-top: 0.6rem;
 }
 
-.known-btn {
+.known-btn, .form-toggle {
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text);
-  padding: 0.35rem 0.75rem;
+  padding: 0.35rem 0.7rem;
   border-radius: 10px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
 }
 
 .known-btn:hover { border-color: var(--known); color: var(--known); }
+.form-toggle:hover { border-color: var(--accent); color: var(--accent); }
 
 .card.is-known .known-btn {
   background: var(--known-soft);
@@ -329,6 +368,104 @@ body {
   padding: 3rem 0;
 }
 
+/* ===== Quiz (единицы / выражения) ===== */
+.view.quiz, .view.review {
+  padding: 1.75rem 0 3rem;
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+.quiz__meta {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  margin: 0 0 0.75rem;
+}
+
+.quiz__card {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  text-align: center;
+  min-height: 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.quiz__prompt { color: var(--muted); font-size: 0.9rem; margin: 0; }
+
+.quiz__symbol { font-size: 1.4rem; }
+.quiz__symbol .katex { font-size: 1.4rem; }
+
+.quiz__name { margin: 0; font-weight: 600; }
+
+.quiz__task { font-size: 1.05rem; }
+.quiz__task .katex { font-size: 1.05rem; }
+
+.quiz__answer {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border);
+  width: 100%;
+  font-size: 1.15rem;
+}
+
+.quiz__answer .katex { font-size: 1.15rem; }
+
+.quiz__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.input {
+  flex: 1 1 200px;
+  min-width: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.input:focus { outline: none; border-color: var(--accent); }
+
+.feedback {
+  margin: 0.75rem 0 0;
+  font-weight: 600;
+  min-height: 1.4em;
+}
+
+.feedback--ok { color: var(--known); }
+.feedback--bad { color: var(--hard); }
+.feedback--info { color: var(--muted); font-weight: 500; }
+
+/* ===== Review ===== */
+.review__slot {
+  display: flex;
+  justify-content: center;
+}
+
+.review__slot .card { width: min(340px, 100%); }
+
+.review__grades {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.review__done { text-align: center; color: var(--muted); }
+.review__done p { margin: 0 0 0.75rem; }
+
 /* ===== Footer ===== */
 .site-footer {
   border-top: 1px solid var(--border);
@@ -338,7 +475,8 @@ body {
 }
 
 @media (max-width: 560px) {
-  .card { height: 420px; }
+  .card { height: 330px; }
   .controls { flex-direction: column; align-items: stretch; }
   .buttons { justify-content: flex-start; }
+  .quiz__card { padding: 1.15rem; }
 }

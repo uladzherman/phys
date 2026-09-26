@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Тренажёр по физике — карточки формул</title>
-  <meta name="description" content="Карточки-тренажёр по физике: описание на лицевой стороне, формула — на обороте.">
+  <title>Тренажёр по физике — карточки, единицы, повторение</title>
+  <meta name="description" content="Тренажёр по физике: карточки формул, проверка единиц СИ, выражение переменной и интервальное повторение.">
+  <link rel="icon" href="data:,">
 
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
@@ -16,13 +17,25 @@
   <header class="site-header">
     <div class="wrap">
       <h1>Тренажёр по физике</h1>
-      <p class="subtitle">Нажмите на карточку, чтобы увидеть формулу</p>
+      <p class="subtitle">Карточки формул, проверка единиц и интервальное повторение</p>
 
-      <div class="progress" aria-label="Прогресс изучения">
+      <nav class="tabs" id="tabs" aria-label="Режимы">
+        <button type="button" class="tab is-active" data-mode="cards">Карточки</button>
+        <button type="button" class="tab" data-mode="units">Единицы</button>
+        <button type="button" class="tab" data-mode="expr">Выражения</button>
+        <button type="button" class="tab" data-mode="review">Повторение <span class="tab__count" id="dueCount">0</span></button>
+      </nav>
+
+      <div class="progress" id="progress" aria-label="Прогресс изучения">
         <div class="progress__bar"><span id="progressFill"></span></div>
         <span class="progress__label" id="progressLabel">0 / 0</span>
       </div>
+    </div>
+  </header>
 
+  <main class="wrap">
+    <!-- ===== Режим: карточки ===== -->
+    <section class="view" id="viewCards">
       <div class="controls">
         <div class="chips" id="sectionChips" role="tablist" aria-label="Разделы"></div>
         <div class="buttons">
@@ -30,17 +43,61 @@
           <button type="button" id="resetBtn" class="btn btn--ghost">Сбросить прогресс</button>
         </div>
       </div>
-    </div>
-  </header>
+      <div class="grid" id="grid"></div>
+      <p class="empty" id="empty" hidden>В этом разделе нет карточек.</p>
+    </section>
 
-  <main class="wrap">
-    <div class="grid" id="grid"></div>
-    <p class="empty" id="empty" hidden>В этом разделе нет карточек.</p>
+    <!-- ===== Режим: единицы СИ ===== -->
+    <section class="view quiz" id="viewUnits" hidden>
+      <p class="quiz__meta" id="unitMeta">Вопрос 0 · Верно 0 · Ошибок 0</p>
+      <div class="quiz__card">
+        <p class="quiz__prompt">В каких единицах СИ измеряется величина?</p>
+        <div class="quiz__symbol" id="unitSymbol"></div>
+        <p class="quiz__name" id="unitName"></p>
+      </div>
+      <div class="quiz__row">
+        <input type="text" id="unitInput" class="input" placeholder="например: м/с²" autocomplete="off" spellcheck="false">
+        <button type="button" id="unitCheck" class="btn">Проверить</button>
+        <button type="button" id="unitShow" class="btn btn--ghost">Показать ответ</button>
+        <button type="button" id="unitNext" class="btn btn--ghost">Дальше</button>
+      </div>
+      <p class="feedback" id="unitFeedback"></p>
+    </section>
+
+    <!-- ===== Режим: выражения ===== -->
+    <section class="view quiz" id="viewExpr" hidden>
+      <p class="quiz__meta" id="exprMeta">Задача 0 · Верно 0 · Ошибок 0</p>
+      <div class="quiz__card">
+        <div class="quiz__task" id="exprTask"></div>
+        <div class="quiz__answer" id="exprAnswer" hidden></div>
+      </div>
+      <div class="quiz__row">
+        <button type="button" id="exprShow" class="btn">Показать ответ</button>
+        <button type="button" id="exprRight" class="btn btn--ghost">Верно</button>
+        <button type="button" id="exprWrong" class="btn btn--ghost">Неверно</button>
+        <button type="button" id="exprNext" class="btn btn--ghost">Дальше</button>
+      </div>
+    </section>
+
+    <!-- ===== Режим: повторение (SRS) ===== -->
+    <section class="view review" id="viewReview" hidden>
+      <p class="quiz__meta" id="reviewMeta"></p>
+      <div class="review__slot" id="reviewSlot"></div>
+      <div class="review__grades" id="reviewGrades" hidden>
+        <button type="button" class="btn btn--hard" data-grade="hard">Трудно</button>
+        <button type="button" class="btn btn--good" data-grade="good">Нормально</button>
+        <button type="button" class="btn btn--easy" data-grade="easy">Легко</button>
+      </div>
+      <div class="review__done" id="reviewDone" hidden>
+        <p>На сегодня повторений нет.</p>
+        <button type="button" id="reviewReset" class="btn btn--ghost">Сбросить расписание повторений</button>
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer">
     <div class="wrap">
-      <span>Формулы рендерятся KaTeX. Прогресс сохраняется в браузере.</span>
+      <span>Формулы рендерятся KaTeX. Прогресс и расписание повторений хранятся в браузере.</span>
     </div>
   </footer>
 
@@ -48,6 +105,8 @@
           integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg"
           crossorigin="anonymous"></script>
   <script defer src="data.js"></script>
+  <script defer src="forms.js"></script>
+  <script defer src="tasks.js"></script>
   <script defer src="app.js"></script>
 </body>
 </html>
