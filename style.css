@@ -544,6 +544,34 @@ body {
   font-size: 0.82rem;
 }
 
+.footer__inner {
+  display: flex;
+  justify-content: center;
+}
+
+.social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.4rem 0.9rem;
+  border-radius: 10px;
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s, background 0.15s;
+}
+
+.social__icon { display: block; flex: none; }
+
+@media (hover: hover) {
+  .social:hover { color: var(--accent); background: var(--accent-soft); }
+}
+
 @media (max-width: 560px) {
   /* Шапка не липнет и не съедает экран */
   .site-header {
