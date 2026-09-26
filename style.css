@@ -45,12 +45,17 @@ html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
+
+main { flex: 1 0 auto; }
 
 .wrap {
   width: min(1180px, 100% - 2rem);
@@ -550,8 +555,14 @@ body {
 
 /* ===== Footer ===== */
 .site-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 15;
+  margin-top: auto;
   border-top: 1px solid var(--border);
-  padding: 1.25rem 0;
+  background: var(--bg-soft);
+  box-shadow: 0 -6px 18px rgba(24, 39, 75, 0.06);
+  padding: 0.35rem 0;
   color: var(--muted);
   font-size: 0.82rem;
 }
@@ -582,6 +593,10 @@ body {
 
 @media (hover: hover) {
   .social:hover { color: var(--accent); background: var(--accent-soft); }
+}
+
+@media (prefers-color-scheme: dark) {
+  .site-footer { box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.35); }
 }
 
 @media (max-width: 560px) {
