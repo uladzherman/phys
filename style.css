@@ -536,6 +536,18 @@ body {
 .review__done { text-align: center; color: var(--muted); }
 .review__done p { margin: 0 0 0.75rem; }
 
+.review__footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+  filter: none;
+}
+
 /* ===== Footer ===== */
 .site-footer {
   border-top: 1px solid var(--border);

@@ -432,6 +432,7 @@
   function renderReview() {
     var slot = byId("reviewSlot"), grades = byId("reviewGrades"), done = byId("reviewDone");
     state.review.queue = dueEntries();
+    byId("reviewReset").disabled = Object.keys(state.srs).length === 0;
 
     if (!state.review.queue.length) {
       slot.innerHTML = "";
