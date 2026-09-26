@@ -172,7 +172,7 @@ body {
 /* ===== Card ===== */
 .card {
   perspective: 1200px;
-  height: 280px;
+  height: 380px;
   border: 0;
   padding: 0;
   background: transparent;
@@ -241,7 +241,8 @@ body {
 }
 
 .formula {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 56px;
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -251,11 +252,50 @@ body {
 .formula .katex-display { margin: 0; }
 .formula .katex { font-size: 1.05rem; }
 
+/* ===== Пояснение на обороте ===== */
+.card__meta {
+  flex: 0 1 auto;
+  max-height: 58%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-top: 0.4rem;
+  padding-right: 0.35rem;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+}
+
+.cond {
+  margin: 0 0 0.45rem;
+  font-size: 0.74rem;
+  line-height: 1.38;
+}
+
+.cond strong { color: var(--accent); }
+
+.vars {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.16rem;
+}
+
+.vars li {
+  font-size: 0.74rem;
+  line-height: 1.38;
+  color: var(--muted);
+}
+
+.vars .sym { color: var(--text); }
+.vars .katex { font-size: 1em; }
+.vars .unit { color: var(--accent); white-space: nowrap; }
+
 .card__note {
   color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.35;
-  margin: 0.4rem 0 0.7rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  margin: 0.45rem 0 0;
+  padding: 0;
 }
 
 .card__actions {
@@ -298,7 +338,7 @@ body {
 }
 
 @media (max-width: 560px) {
-  .card { height: 310px; }
+  .card { height: 420px; }
   .controls { flex-direction: column; align-items: stretch; }
   .buttons { justify-content: flex-start; }
 }

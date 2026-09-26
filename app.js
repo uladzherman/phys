@@ -97,6 +97,33 @@
     el.appendChild(code);
   }
 
+  var INLINE_OPTS = { throwOnError: false, displayMode: false, strict: "ignore", trust: false };
+
+  function renderMathInline(el, latex) {
+    if (window.katex) {
+      try {
+        window.katex.render(latex, el, INLINE_OPTS);
+        return;
+      } catch (e) { /* фолбэк ниже */ }
+    }
+    el.textContent = latex;
+  }
+
+  // Рендерит строку со вставками $...$: текст — как есть, математика — через KaTeX.
+  function appendRich(parent, text) {
+    if (!text) return;
+    var parts = String(text).split("$");
+    parts.forEach(function (part, i) {
+      if (i % 2 === 1) {
+        var span = document.createElement("span");
+        renderMathInline(span, part);
+        parent.appendChild(span);
+      } else if (part) {
+        parent.appendChild(document.createTextNode(part));
+      }
+    });
+  }
+
   // Масштабирует формулу так, чтобы она целиком помещалась в карточке.
   function fitFormula(container) {
     var node = container.querySelector(".katex-display") || container.querySelector(".katex");
@@ -169,9 +196,46 @@
     formula.className = "formula";
     renderFormula(formula, card.f);
 
-    var note = document.createElement("p");
-    note.className = "card__note";
-    note.textContent = card.n || "";
+    var meta = document.createElement("div");
+    meta.className = "card__meta";
+
+    if (card.cond) {
+      var cond = document.createElement("p");
+      cond.className = "cond";
+      var condLabel = document.createElement("strong");
+      condLabel.textContent = "Условие. ";
+      cond.appendChild(condLabel);
+      appendRich(cond, card.cond);
+      meta.appendChild(cond);
+    }
+
+    if (card.vars && card.vars.length) {
+      var list = document.createElement("ul");
+      list.className = "vars";
+      card.vars.forEach(function (v) {
+        var li = document.createElement("li");
+        var sym = document.createElement("span");
+        sym.className = "sym";
+        renderMathInline(sym, v.s);
+        li.appendChild(sym);
+        li.appendChild(document.createTextNode(" — " + v.n));
+        if (v.u) {
+          var unit = document.createElement("span");
+          unit.className = "unit";
+          unit.textContent = " [" + v.u + "]";
+          li.appendChild(unit);
+        }
+        list.appendChild(li);
+      });
+      meta.appendChild(list);
+    }
+
+    if (card.n) {
+      var note = document.createElement("p");
+      note.className = "card__note";
+      appendRich(note, card.n);
+      meta.appendChild(note);
+    }
 
     var actions = document.createElement("div");
     actions.className = "card__actions";
@@ -189,7 +253,7 @@
 
     back.appendChild(badgeBack);
     back.appendChild(formula);
-    back.appendChild(note);
+    back.appendChild(meta);
     back.appendChild(actions);
 
     inner.appendChild(front);
