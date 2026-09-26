@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Тренажёр по физике — карточки формул</title>
+  <meta name="description" content="Карточки-тренажёр по физике: описание на лицевой стороне, формула — на обороте.">
+
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+        integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+"
+        crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <h1>Тренажёр по физике</h1>
+      <p class="subtitle">Нажмите на карточку, чтобы увидеть формулу</p>
+
+      <div class="progress" aria-label="Прогресс изучения">
+        <div class="progress__bar"><span id="progressFill"></span></div>
+        <span class="progress__label" id="progressLabel">0 / 0</span>
+      </div>
+
+      <div class="controls">
+        <div class="chips" id="sectionChips" role="tablist" aria-label="Разделы"></div>
+        <div class="buttons">
+          <button type="button" id="shuffleBtn" class="btn">Перемешать</button>
+          <button type="button" id="resetBtn" class="btn btn--ghost">Сбросить прогресс</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="grid" id="grid"></div>
+    <p class="empty" id="empty" hidden>В этом разделе нет карточек.</p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>Формулы рендерятся KaTeX. Прогресс сохраняется в браузере.</span>
+    </div>
+  </footer>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
+          integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg"
+          crossorigin="anonymous"></script>
+  <script defer src="data.js"></script>
+  <script defer src="app.js"></script>
+</body>
+</html>
