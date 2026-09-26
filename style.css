@@ -33,6 +33,14 @@
 
 * { box-sizing: border-box; }
 
+button, a, .card, .option {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab, .chip, .btn, .option, .known-btn, .form-toggle {
+  touch-action: manipulation;
+}
+
 html { scroll-behavior: smooth; }
 
 body {
@@ -84,9 +92,13 @@ body {
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text);
-  padding: 0.4rem 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.45rem 1rem;
   border-radius: 10px;
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
@@ -163,9 +175,13 @@ body {
   border: 1px solid var(--border);
   background: var(--bg-soft);
   color: var(--text);
-  padding: 0.35rem 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.45rem 0.95rem;
   border-radius: 999px;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
@@ -185,9 +201,13 @@ body {
   border: 1px solid var(--accent);
   background: var(--accent);
   color: #fff;
-  padding: 0.45rem 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
   border-radius: 10px;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
   transition: filter 0.15s, background 0.15s, color 0.15s, border-color 0.15s;
@@ -217,7 +237,7 @@ body {
 /* ===== Card ===== */
 .card {
   perspective: 1200px;
-  height: 300px;
+  height: 320px;
   border: 0;
   padding: 0;
   background: transparent;
@@ -346,6 +366,10 @@ body {
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
   padding: 0.35rem 0.7rem;
   border-radius: 10px;
   font-size: 0.78rem;
@@ -521,8 +545,37 @@ body {
 }
 
 @media (max-width: 560px) {
-  .card { height: 330px; }
-  .controls { flex-direction: column; align-items: stretch; }
-  .buttons { justify-content: flex-start; }
+  /* Шапка не липнет и не съедает экран */
+  .site-header {
+    position: static;
+    padding: 1rem 0 0.85rem;
+    box-shadow: none;
+  }
+  .site-header h1 { font-size: 1.2rem; }
+  .subtitle { display: none; }
+  .tabs { margin-bottom: 0.7rem; gap: 0.3rem; }
+  .progress { margin-bottom: 0.1rem; }
+
+  .grid { gap: 0.85rem; }
+  .card { height: 340px; }
+  .controls { flex-direction: column; align-items: stretch; gap: 0.6rem; }
+  .buttons { justify-content: flex-start; flex-wrap: wrap; }
   .quiz__card { padding: 1.15rem; }
+  .review__grades { flex-direction: column; }
+  .review__grades .btn { width: 100%; }
+}
+
+/* На тач-устройствах убираем «залипающий» hover */
+@media (hover: none) {
+  .card:hover .card__face { box-shadow: var(--shadow); }
+  .tab:not(.is-active):hover,
+  .chip:not(.is-active):hover,
+  .option:hover:not(:disabled),
+  .known-btn:hover,
+  .form-toggle:hover,
+  .btn--ghost:hover { border-color: var(--border); }
+  .known-btn:hover,
+  .form-toggle:hover,
+  .btn--ghost:hover { color: var(--text); }
+  .btn:hover { filter: none; }
 }
