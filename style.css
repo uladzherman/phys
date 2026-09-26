@@ -172,7 +172,7 @@ body {
 /* ===== Card ===== */
 .card {
   perspective: 1200px;
-  height: 250px;
+  height: 280px;
   border: 0;
   padding: 0;
   background: transparent;
@@ -242,11 +242,9 @@ body {
 
 .formula {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow-x: auto;
-  overflow-y: hidden;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
   padding: 0.35rem 0;
 }
 
@@ -300,7 +298,7 @@ body {
 }
 
 @media (max-width: 560px) {
-  .card { height: 270px; }
+  .card { height: 310px; }
   .controls { flex-direction: column; align-items: stretch; }
   .buttons { justify-content: flex-start; }
 }

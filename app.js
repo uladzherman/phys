@@ -97,6 +97,31 @@
     el.appendChild(code);
   }
 
+  // Масштабирует формулу так, чтобы она целиком помещалась в карточке.
+  function fitFormula(container) {
+    var node = container.querySelector(".katex-display") || container.querySelector(".katex");
+    if (!node) return;
+    node.style.transform = "";
+    node.style.transformOrigin = "center center";
+
+    var availW = container.clientWidth;
+    var availH = container.clientHeight;
+    if (availW <= 0 || availH <= 0) return;
+
+    var w = node.offsetWidth || node.scrollWidth;
+    var h = node.offsetHeight || node.scrollHeight;
+    if (!w || !h) return;
+
+    var scale = Math.min(1, (availW - 6) / w, (availH - 6) / h);
+    if (scale < 0.999) {
+      node.style.transform = "scale(" + scale.toFixed(4) + ")";
+    }
+  }
+
+  function fitAll() {
+    gridEl.querySelectorAll(".formula").forEach(fitFormula);
+  }
+
   function createCard(entry) {
     var card = entry.card;
     var id = entry.id;
@@ -225,6 +250,7 @@
       frag.appendChild(createCard(entry));
     });
     gridEl.appendChild(frag);
+    window.requestAnimationFrame(fitAll);
   }
 
   shuffleBtn.addEventListener("click", function () {
@@ -245,4 +271,14 @@
   buildChips();
   render();
   updateProgress();
+
+  var resizeTimer = null;
+  window.addEventListener("resize", function () {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(fitAll, 150);
+  });
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(fitAll);
+  }
 })();
