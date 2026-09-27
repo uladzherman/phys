@@ -35,11 +35,15 @@
     list: [],
     known: new Set(load(LS.known, [])),
     srs: load(LS.srs, {}),
-    stats: load(LS.stats, { unitOk: 0, unitBad: 0, exprOk: 0, exprBad: 0 }),
+    stats: load(LS.stats, { unitOk: 0, unitBad: 0, formulaOk: 0, formulaBad: 0, exprOk: 0, exprBad: 0 }),
     unit: { current: null, asked: 0 },
-    expr: { order: [], pos: 0, shown: 0 },
+    formula: { order: [], pos: 0, pool: null },
+    expr: { order: [], pos: 0, pool: null },
     review: { queue: [] }
   };
+  // Восстанавливаем недостающие счётчики после добавления режима «Формулы».
+  if (state.stats.formulaOk === undefined) state.stats.formulaOk = 0;
+  if (state.stats.formulaBad === undefined) state.stats.formulaBad = 0;
 
   /* ---------- Рендер математики ---------- */
   function renderFormula(node, latex) {
@@ -274,17 +278,7 @@
     window.requestAnimationFrame(function () { fitAllWithin(gridEl); });
   }
 
-  /* ---------- Режим «Единицы» ---------- */
-  var unitPool = [];
-  window.CARDS.forEach(function (c, i) {
-    (c.vars || []).forEach(function (v) {
-      if (v.u !== undefined) unitPool.push({ cardId: i, section: c.s, sym: v.s, name: v.n, unit: v.u });
-    });
-  });
-  var unitAll = unitPool.map(function (v) { return v.unit; })
-    .filter(function (u, i, arr) { return arr.indexOf(u) === i; });
-
-  // correct + (count) разных дистракторов из пула, в случайном порядке
+  /* ---------- Общее для тестов: варианты и их подгонка ---------- */
   function buildChoices(correctText, poolValues, count) {
     var others = poolValues.filter(function (v) { return v !== correctText; });
     shuffleArr(others);
@@ -306,78 +300,20 @@
     });
   }
 
-  function unitNewQuestion() {
-    var next;
-    do { next = unitPool[Math.floor(Math.random() * unitPool.length)]; }
-    while (unitPool.length > 1 && state.unit.current && next.sym === state.unit.current.sym && next.name === state.unit.current.name);
-    state.unit.current = next;
-    state.unit.asked++;
-    state.unit.answered = false;
-
-    renderMathInline(byId("unitSymbol"), next.sym);
-    byId("unitName").textContent = next.name;
-    byId("unitFeedback").textContent = "";
-    byId("unitFeedback").className = "feedback";
-    unitMeta();
-
-    var choices = buildChoices(next.unit, unitAll, 3);
-    renderOptions(byId("unitOptions"), choices, function (btn, c) { btn.textContent = c.text; },
-      function (btn, c) { unitAnswer(btn, c.ok, next.unit); });
-  }
-  function unitMeta() {
-    var s = state.stats;
-    byId("unitMeta").textContent = "Вопрос " + state.unit.asked + " · Верно " + s.unitOk + " · Ошибок " + s.unitBad;
-    byId("unitReset").disabled = (s.unitOk + s.unitBad) === 0;
-  }
-  function unitAnswer(btn, ok, correctUnit) {
-    if (state.unit.answered) return;
-    state.unit.answered = true;
-    byId("unitOptions").querySelectorAll(".option").forEach(function (b) {
-      b.disabled = true;
-      if (b.dataset.correct) b.classList.add("is-correct");
-    });
-    if (ok) { state.stats.unitOk++; }
-    else { state.stats.unitBad++; btn.classList.add("is-wrong"); }
-    save(LS.stats, state.stats);
-    var fb = byId("unitFeedback");
-    fb.textContent = ok ? "Верно!" : ("Неверно. Правильный ответ: [" + correctUnit + "]");
-    fb.className = "feedback " + (ok ? "feedback--ok" : "feedback--bad");
-    unitMeta();
+  function renderTextOptions(box, choices, onPick) {
+    renderOptions(box, choices, function (btn, c) { btn.textContent = c.text; }, onPick);
   }
 
-  /* ---------- Режим «Выражения» ---------- */
-  // Пул задач: курируемые «выразите переменную» + авто-задачи по каждой карточке,
-  // чтобы все формулы автоматически попадали в режим (как в «Единицах»).
-  function buildExprPool() {
-    var curated = window.TASKS.map(function (t) {
-      return { kind: "curated", q: t.q, answer: t.a, wrong: t.wrong };
-    });
-    var auto = window.CARDS.map(function (c) {
-      return { kind: "auto", prompt: c.t, answer: c.f, section: c.s };
-    });
-    return curated.concat(auto);
+  function renderMathOptions(box, choices, onPick) {
+    renderOptions(box, choices, function (btn, c) {
+      var span = document.createElement("span");
+      renderMathInline(span, c.text);
+      btn.appendChild(span);
+    }, onPick);
+    window.requestAnimationFrame(function () { fitOptions(box); });
   }
 
-  function exprNewOrder() {
-    state.expr.pool = buildExprPool();
-    state.expr.order = shuffleArr(state.expr.pool.map(function (_, i) { return i; }));
-    state.expr.pos = 0;
-  }
-
-  // Три дистрактора — другие формулы того же раздела.
-  function exprDistractors(task) {
-    var same = window.CARDS.filter(function (c) {
-      return c.s === task.section && c.f !== task.answer;
-    });
-    shuffleArr(same);
-    var res = [];
-    for (var i = 0; i < same.length && res.length < 3; i++) {
-      if (res.indexOf(same[i].f) === -1) res.push(same[i].f);
-    }
-    return res;
-  }
-
-  // Уменьшает длинные формулы в вариантах ответа, чтобы они влезали в кнопку.
+  // Уменьшает длинные формулы в вариантах, чтобы они влезали в кнопку.
   function fitOptions(box) {
     box.querySelectorAll(".option").forEach(function (btn) {
       var node = btn.querySelector(".katex");
@@ -394,47 +330,146 @@
     });
   }
 
+  function answerOption(box, btn, ok, feedbackEl, okText, badText) {
+    box.querySelectorAll(".option").forEach(function (b) {
+      b.disabled = true;
+      if (b.dataset.correct) b.classList.add("is-correct");
+    });
+    if (!ok) btn.classList.add("is-wrong");
+    feedbackEl.textContent = ok ? okText : badText;
+    feedbackEl.className = "feedback " + (ok ? "feedback--ok" : "feedback--bad");
+  }
+
+  /* ---------- Режим «Единицы» ---------- */
+  var unitPool = [];
+  window.CARDS.forEach(function (c) {
+    (c.vars || []).forEach(function (v) {
+      if (v.u !== undefined) unitPool.push({ section: c.s, sym: v.s, name: v.n, unit: v.u });
+    });
+  });
+  var unitAll = unitPool.map(function (v) { return v.unit; })
+    .filter(function (u, i, arr) { return arr.indexOf(u) === i; });
+
+  function unitNewQuestion() {
+    var next;
+    do { next = unitPool[Math.floor(Math.random() * unitPool.length)]; }
+    while (unitPool.length > 1 && state.unit.current && next.sym === state.unit.current.sym && next.name === state.unit.current.name);
+    state.unit.current = next;
+    state.unit.asked++;
+    state.unit.answered = false;
+
+    renderMathInline(byId("unitSymbol"), next.sym);
+    byId("unitName").textContent = next.name;
+    byId("unitFeedback").textContent = "";
+    byId("unitFeedback").className = "feedback";
+    unitMeta();
+
+    renderTextOptions(byId("unitOptions"), buildChoices(next.unit, unitAll, 3), function (btn, c) {
+      unitAnswer(btn, c.ok, next.unit);
+    });
+  }
+  function unitMeta() {
+    var s = state.stats;
+    byId("unitMeta").textContent = "Вопрос " + state.unit.asked + " · Верно " + s.unitOk + " · Ошибок " + s.unitBad;
+    byId("unitReset").disabled = (s.unitOk + s.unitBad) === 0;
+  }
+  function unitAnswer(btn, ok, correctUnit) {
+    if (state.unit.answered) return;
+    state.unit.answered = true;
+    if (ok) { state.stats.unitOk++; } else { state.stats.unitBad++; }
+    save(LS.stats, state.stats);
+    answerOption(byId("unitOptions"), btn, ok, byId("unitFeedback"), "Верно!",
+      "Неверно. Правильный ответ: [" + correctUnit + "]");
+    unitMeta();
+  }
+
+  /* ---------- Режим «Формулы» ---------- */
+  function formulaNewOrder() {
+    state.formula.pool = CARD_ENTRIES;
+    state.formula.order = shuffleArr(state.formula.pool.map(function (_, i) { return i; }));
+    state.formula.pos = 0;
+  }
+  // Три дистрактора — другие формулы того же раздела.
+  function formulaDistractors(answer, section) {
+    var same = window.CARDS.filter(function (c) { return c.s === section && c.f !== answer; });
+    shuffleArr(same);
+    var res = [];
+    for (var i = 0; i < same.length && res.length < 3; i++) {
+      if (res.indexOf(same[i].f) === -1) res.push(same[i].f);
+    }
+    return res;
+  }
+  function formulaRender() {
+    if (!state.formula.order.length) formulaNewOrder();
+    var entry = state.formula.pool[state.formula.order[state.formula.pos % state.formula.order.length]];
+    state.formula.answered = false;
+
+    byId("formulaSection").textContent = SECTION_TITLE[entry.card.s] || "";
+    byId("formulaName").textContent = entry.card.t;
+    byId("formulaFeedback").textContent = "";
+    byId("formulaFeedback").className = "feedback";
+    formulaMeta();
+
+    renderMathOptions(byId("formulaOptions"),
+      buildChoices(entry.card.f, formulaDistractors(entry.card.f, entry.card.s), 3),
+      function (btn, c) { formulaAnswer(btn, c.ok); });
+  }
+  function formulaMeta() {
+    var s = state.stats, total = window.CARDS.length;
+    byId("formulaMeta").textContent = "Задача " + (state.formula.pos + 1) + " из " + total +
+      " · Верно " + s.formulaOk + " · Ошибок " + s.formulaBad;
+    byId("formulaReset").disabled = (s.formulaOk + s.formulaBad) === 0;
+  }
+  function formulaAnswer(btn, ok) {
+    if (state.formula.answered) return;
+    state.formula.answered = true;
+    if (ok) { state.stats.formulaOk++; } else { state.stats.formulaBad++; }
+    save(LS.stats, state.stats);
+    answerOption(byId("formulaOptions"), btn, ok, byId("formulaFeedback"), "Верно!",
+      "Неверно — верный вариант выделен.");
+    formulaMeta();
+  }
+  function formulaNext() {
+    state.formula.pos++;
+    if (state.formula.pos >= state.formula.order.length) formulaNewOrder();
+    formulaRender();
+  }
+
+  /* ---------- Режим «Выражения» ---------- */
+  function exprNewOrder() {
+    state.expr.pool = window.TASKS;
+    state.expr.order = shuffleArr(state.expr.pool.map(function (_, i) { return i; }));
+    state.expr.pos = 0;
+  }
   function exprRender() {
     if (!state.expr.order.length) exprNewOrder();
     var task = state.expr.pool[state.expr.order[state.expr.pos % state.expr.order.length]];
     state.expr.answered = false;
 
-    var taskEl = byId("exprTask");
-    taskEl.innerHTML = "";
-    var wrong;
+    // «Выразите $t$ из $v = v_0 + at$» → заголовок «Выразите $t$», тело — формула.
+    var q = String(task.q);
+    var parts = q.split(" из ");
+    var head = parts.length === 2 ? parts[0] : q;
+    var body = parts.length === 2 ? parts[1] : "";
 
-    if (task.kind === "curated") {
-      appendRich(taskEl, task.q);
-      wrong = task.wrong;
-    } else {
-      var prompt = document.createElement("p");
-      prompt.className = "quiz__prompt";
-      prompt.textContent = "Какая формула соответствует:";
-      var name = document.createElement("div");
-      name.className = "quiz__task";
-      name.textContent = "«" + task.prompt + "»";
-      taskEl.appendChild(prompt);
-      taskEl.appendChild(name);
-      wrong = exprDistractors(task);
-    }
+    var headEl = byId("exprPrompt");
+    headEl.innerHTML = "";
+    appendRich(headEl, head);
+    var bodyEl = byId("exprBody");
+    bodyEl.innerHTML = "";
+    appendRich(bodyEl, body);
+    bodyEl.hidden = !body;
 
     byId("exprFeedback").textContent = "";
     byId("exprFeedback").className = "feedback";
     exprMeta();
 
-    var choices = shuffleArr([{ ok: true, text: task.answer }].concat(
-      wrong.map(function (w) { return { ok: false, text: w }; })
-    ));
-    renderOptions(byId("exprOptions"), choices, function (btn, c) {
-      var span = document.createElement("span");
-      renderMathInline(span, c.text);
-      btn.appendChild(span);
-    }, function (btn, c) { exprAnswer(btn, c.ok); });
-    window.requestAnimationFrame(function () { fitOptions(byId("exprOptions")); });
+    renderMathOptions(byId("exprOptions"),
+      shuffleArr([{ ok: true, text: task.a }].concat(task.wrong.map(function (w) { return { ok: false, text: w }; }))),
+      function (btn, c) { exprAnswer(btn, c.ok); });
   }
   function exprMeta() {
-    var s = state.stats;
-    var total = state.expr.pool ? state.expr.pool.length : window.TASKS.length;
+    var s = state.stats, total = window.TASKS.length;
     byId("exprMeta").textContent = "Задача " + (state.expr.pos + 1) + " из " + total +
       " · Верно " + s.exprOk + " · Ошибок " + s.exprBad;
     byId("exprReset").disabled = (s.exprOk + s.exprBad) === 0;
@@ -442,16 +477,10 @@
   function exprAnswer(btn, ok) {
     if (state.expr.answered) return;
     state.expr.answered = true;
-    byId("exprOptions").querySelectorAll(".option").forEach(function (b) {
-      b.disabled = true;
-      if (b.dataset.correct) b.classList.add("is-correct");
-    });
-    if (ok) { state.stats.exprOk++; }
-    else { state.stats.exprBad++; btn.classList.add("is-wrong"); }
+    if (ok) { state.stats.exprOk++; } else { state.stats.exprBad++; }
     save(LS.stats, state.stats);
-    var fb = byId("exprFeedback");
-    fb.textContent = ok ? "Верно!" : "Неверно — верный вариант выделен.";
-    fb.className = "feedback " + (ok ? "feedback--ok" : "feedback--bad");
+    answerOption(byId("exprOptions"), btn, ok, byId("exprFeedback"), "Верно!",
+      "Неверно — верный вариант выделен.");
     exprMeta();
   }
   function exprNext() {
@@ -537,13 +566,15 @@
     });
     byId("viewCards").hidden = mode !== "cards";
     byId("viewUnits").hidden = mode !== "units";
+    byId("viewFormulas").hidden = mode !== "formulas";
     byId("viewExpr").hidden = mode !== "expr";
     byId("viewReview").hidden = mode !== "review";
     byId("progress").style.display = mode === "cards" ? "" : "none";
 
     if (mode === "cards") renderBrowse();
     else if (mode === "units") { if (!state.unit.current) unitNewQuestion(); unitMeta(); }
-    else if (mode === "expr") { if (!state.expr.order.length) { exprNewOrder(); } exprRender(); }
+    else if (mode === "formulas") { if (!state.formula.order.length) formulaNewOrder(); formulaRender(); }
+    else if (mode === "expr") { if (!state.expr.order.length) exprNewOrder(); exprRender(); }
     else if (mode === "review") renderReview();
 
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -584,6 +615,17 @@
       unitNewQuestion();
     });
 
+    byId("formulaNext").addEventListener("click", formulaNext);
+    byId("formulaReset").addEventListener("click", function () {
+      if ((state.stats.formulaOk + state.stats.formulaBad) === 0) return;
+      if (!window.confirm("Сбросить прогресс в режиме «Формулы»?")) return;
+      state.stats.formulaOk = 0;
+      state.stats.formulaBad = 0;
+      save(LS.stats, state.stats);
+      formulaNewOrder();
+      formulaRender();
+    });
+
     byId("exprNext").addEventListener("click", exprNext);
     byId("exprReset").addEventListener("click", function () {
       if ((state.stats.exprOk + state.stats.exprBad) === 0) return;
@@ -611,6 +653,7 @@
       window.clearTimeout(resizeTimer);
       resizeTimer = window.setTimeout(function () {
         fitAllWithin(document);
+        if (state.mode === "formulas") fitOptions(byId("formulaOptions"));
         if (state.mode === "expr") fitOptions(byId("exprOptions"));
       }, 150);
     });

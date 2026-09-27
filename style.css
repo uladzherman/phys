@@ -458,14 +458,23 @@ body {
 }
 
 .quiz__prompt { color: var(--muted); font-size: 0.9rem; margin: 0; }
+.quiz__prompt .katex { font-size: 1em; }
+
+.quiz__caption {
+  color: var(--muted);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+}
 
 .quiz__symbol { font-size: 1.4rem; }
 .quiz__symbol .katex { font-size: 1.4rem; }
 
-.quiz__name { margin: 0; font-weight: 600; }
+.quiz__name { margin: 0; font-weight: 600; font-size: 1.05rem; }
 
-.quiz__task { font-size: 1.05rem; }
-.quiz__task .katex { font-size: 1.05rem; }
+.quiz__task { font-size: 1.15rem; }
+.quiz__task .katex { font-size: 1.15rem; }
 
 .quiz__answer {
   margin-top: 0.75rem;

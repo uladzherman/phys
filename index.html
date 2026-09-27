@@ -42,6 +42,7 @@
       <nav class="tabs" id="tabs" aria-label="Режимы">
         <button type="button" class="tab is-active" data-mode="cards">Карточки</button>
         <button type="button" class="tab" data-mode="units">Единицы</button>
+        <button type="button" class="tab" data-mode="formulas">Формулы</button>
         <button type="button" class="tab" data-mode="expr">Выражения</button>
         <button type="button" class="tab" data-mode="review">Повторение <span class="tab__count" id="dueCount">0</span></button>
       </nav>
@@ -83,11 +84,28 @@
       <p class="feedback" id="unitFeedback"></p>
     </section>
 
+    <!-- ===== Режим: формулы ===== -->
+    <section class="view quiz" id="viewFormulas" hidden>
+      <p class="quiz__meta" id="formulaMeta">Задача 0 · Верно 0 · Ошибок 0</p>
+      <div class="quiz__card">
+        <p class="quiz__prompt">Какая формула соответствует величине:</p>
+        <p class="quiz__caption" id="formulaSection"></p>
+        <p class="quiz__name" id="formulaName"></p>
+      </div>
+      <div class="options" id="formulaOptions"></div>
+      <div class="quiz__row">
+        <button type="button" id="formulaNext" class="btn btn--ghost">Дальше</button>
+        <button type="button" id="formulaReset" class="btn btn--ghost">Сбросить прогресс</button>
+      </div>
+      <p class="feedback" id="formulaFeedback"></p>
+    </section>
+
     <!-- ===== Режим: выражения ===== -->
     <section class="view quiz" id="viewExpr" hidden>
       <p class="quiz__meta" id="exprMeta">Задача 0 · Верно 0 · Ошибок 0</p>
       <div class="quiz__card">
-        <div class="quiz__task" id="exprTask"></div>
+        <p class="quiz__prompt" id="exprPrompt"></p>
+        <div class="quiz__task" id="exprBody"></div>
       </div>
       <div class="options" id="exprOptions"></div>
       <div class="quiz__row">
