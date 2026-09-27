@@ -2,16 +2,22 @@
   "use strict";
 
   var LS = {
-    known: "phys-trainer-known-v1",
-    srs: "phys-trainer-srs-v1",
+    known: "phys-trainer-known-v2",
+    srs: "phys-trainer-srs-v2",
     stats: "phys-trainer-stats-v1"
   };
+  // Старые ключи (прогресс хранился по индексам карточек и ломался при изменении набора).
+  var LS_OLD = ["phys-trainer-known-v1", "phys-trainer-srs-v1"];
   var KATEX_DISPLAY = { throwOnError: false, displayMode: true, strict: "ignore", trust: false };
   var KATEX_INLINE = { throwOnError: false, displayMode: false, strict: "ignore", trust: false };
   var DAY = 86400000;
 
   var SECTION_TITLE = {};
   window.SECTIONS.forEach(function (s) { SECTION_TITLE[s.id] = s.title; });
+
+  // Стабильный ID карточки (не зависит от порядка и дробления карточек).
+  function cardId(card) { return card.s + "::" + card.t; }
+  var CARD_ENTRIES = window.CARDS.map(function (c) { return { card: c, id: cardId(c) }; });
 
   function load(key, fallback) {
     try { var raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
@@ -255,7 +261,7 @@
   }
 
   function renderBrowse() {
-    var base = window.CARDS.map(function (c, i) { return { card: c, id: i }; });
+    var base = CARD_ENTRIES.slice();
     state.list = state.section === "all" ? base : base.filter(function (x) { return x.card.s === state.section; });
     if (state.shuffled) shuffleArr(state.list);
 
@@ -457,7 +463,7 @@
   /* ---------- Режим «Повторение» (SRS, SM-2 lite) ---------- */
   function dueEntries() {
     var now = Date.now();
-    return window.CARDS.map(function (c, i) { return { card: c, id: i }; })
+    return CARD_ENTRIES
       .filter(function (e) {
         var st = state.srs[e.id];
         return !st || st.due <= now;
@@ -470,8 +476,8 @@
   }
   function dueCount() {
     var now = Date.now();
-    return window.CARDS.reduce(function (n, c, i) {
-      var st = state.srs[i];
+    return CARD_ENTRIES.reduce(function (n, e) {
+      var st = state.srs[e.id];
       return n + (!st || st.due <= now ? 1 : 0);
     }, 0);
   }
@@ -545,6 +551,7 @@
 
   /* ---------- Инициализация ---------- */
   function init() {
+    LS_OLD.forEach(function (k) { try { localStorage.removeItem(k); } catch (e) { /* недоступно */ } });
     buildChips();
     renderBrowse();
     updateProgress();
