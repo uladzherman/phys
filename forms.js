@@ -36,13 +36,5 @@ window.FORMS = {
   "Напряжённость поля точечного заряда": {
     vec: "\\vec{E} = \\dfrac{\\vec{F}}{q}",
     proj: "E_x = \\dfrac{F_x}{q}"
-  },
-  "Сила Ампера": {
-    vec: "\\vec{F}_A = I\\,\\vec{l} \\times \\vec{B}",
-    proj: "F_A = B I l \\sin\\alpha"
-  },
-  "Сила Лоренца": {
-    vec: "\\vec{F}_L = q\\,\\vec{v} \\times \\vec{B}",
-    proj: "F_L = q v B \\sin\\alpha"
   }
 };
