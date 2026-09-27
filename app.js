@@ -278,10 +278,12 @@
     .filter(function (u, i, arr) { return arr.indexOf(u) === i; });
 
   // correct + (count) разных дистракторов из пула, в случайном порядке
-  function buildChoices(correct, pool, count) {
-    var others = pool.filter(function (x) { return x !== correct; });
+  function buildChoices(correctText, poolValues, count) {
+    var others = poolValues.filter(function (v) { return v !== correctText; });
     shuffleArr(others);
-    return shuffleArr([correct].concat(others.slice(0, count)));
+    var out = [{ ok: true, text: correctText }];
+    others.slice(0, count).forEach(function (v) { out.push({ ok: false, text: v }); });
+    return shuffleArr(out);
   }
 
   function renderOptions(box, choices, decorate, onPick) {
@@ -311,9 +313,7 @@
     byId("unitFeedback").className = "feedback";
     unitMeta();
 
-    var choices = buildChoices({ ok: true, text: next.unit }, unitAll.map(function (u) {
-      return { ok: false, text: u };
-    }), 3);
+    var choices = buildChoices(next.unit, unitAll, 3);
     renderOptions(byId("unitOptions"), choices, function (btn, c) { btn.textContent = c.text; },
       function (btn, c) { unitAnswer(btn, c.ok, next.unit); });
   }
