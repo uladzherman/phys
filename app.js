@@ -320,6 +320,7 @@
   function unitMeta() {
     var s = state.stats;
     byId("unitMeta").textContent = "Вопрос " + state.unit.asked + " · Верно " + s.unitOk + " · Ошибок " + s.unitBad;
+    byId("unitReset").disabled = (s.unitOk + s.unitBad) === 0;
   }
   function unitAnswer(btn, ok, correctUnit) {
     if (state.unit.answered) return;
@@ -367,6 +368,7 @@
     var s = state.stats;
     byId("exprMeta").textContent = "Задача " + (state.expr.pos + 1) + " из " + window.TASKS.length +
       " · Верно " + s.exprOk + " · Ошибок " + s.exprBad;
+    byId("exprReset").disabled = (s.exprOk + s.exprBad) === 0;
   }
   function exprAnswer(btn, ok) {
     if (state.expr.answered) return;
@@ -502,8 +504,26 @@
     });
 
     byId("unitNext").addEventListener("click", unitNewQuestion);
+    byId("unitReset").addEventListener("click", function () {
+      if ((state.stats.unitOk + state.stats.unitBad) === 0) return;
+      if (!window.confirm("Сбросить прогресс в режиме «Единицы»?")) return;
+      state.stats.unitOk = 0;
+      state.stats.unitBad = 0;
+      state.unit.asked = 0;
+      save(LS.stats, state.stats);
+      unitNewQuestion();
+    });
 
     byId("exprNext").addEventListener("click", exprNext);
+    byId("exprReset").addEventListener("click", function () {
+      if ((state.stats.exprOk + state.stats.exprBad) === 0) return;
+      if (!window.confirm("Сбросить прогресс в режиме «Выражения»?")) return;
+      state.stats.exprOk = 0;
+      state.stats.exprBad = 0;
+      save(LS.stats, state.stats);
+      exprNewOrder();
+      exprRender();
+    });
 
     byId("reviewGrades").addEventListener("click", function (e) {
       var btn = e.target.closest("[data-grade]");
