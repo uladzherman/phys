@@ -525,7 +525,8 @@ body {
   font-size: 0.95rem;
   text-align: center;
   cursor: pointer;
-  min-height: 58px;
+  min-height: 62px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;

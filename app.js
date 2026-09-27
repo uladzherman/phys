@@ -340,34 +340,96 @@
   }
 
   /* ---------- Режим «Выражения» ---------- */
+  // Пул задач: курируемые «выразите переменную» + авто-задачи по каждой карточке,
+  // чтобы все формулы автоматически попадали в режим (как в «Единицах»).
+  function buildExprPool() {
+    var curated = window.TASKS.map(function (t) {
+      return { kind: "curated", q: t.q, answer: t.a, wrong: t.wrong };
+    });
+    var auto = window.CARDS.map(function (c) {
+      return { kind: "auto", prompt: c.t, answer: c.f, section: c.s };
+    });
+    return curated.concat(auto);
+  }
+
   function exprNewOrder() {
-    state.expr.order = shuffleArr(window.TASKS.map(function (_, i) { return i; }));
+    state.expr.pool = buildExprPool();
+    state.expr.order = shuffleArr(state.expr.pool.map(function (_, i) { return i; }));
     state.expr.pos = 0;
   }
+
+  // Три дистрактора — другие формулы того же раздела.
+  function exprDistractors(task) {
+    var same = window.CARDS.filter(function (c) {
+      return c.s === task.section && c.f !== task.answer;
+    });
+    shuffleArr(same);
+    var res = [];
+    for (var i = 0; i < same.length && res.length < 3; i++) {
+      if (res.indexOf(same[i].f) === -1) res.push(same[i].f);
+    }
+    return res;
+  }
+
+  // Уменьшает длинные формулы в вариантах ответа, чтобы они влезали в кнопку.
+  function fitOptions(box) {
+    box.querySelectorAll(".option").forEach(function (btn) {
+      var node = btn.querySelector(".katex");
+      if (!node) return;
+      node.style.transform = "";
+      node.style.transformOrigin = "center center";
+      var availW = btn.clientWidth - 14;
+      var availH = btn.clientHeight - 14;
+      if (availW <= 0 || availH <= 0) return;
+      var w = node.offsetWidth, h = node.offsetHeight;
+      if (!w || !h) return;
+      var scale = Math.min(1, availW / w, availH / h);
+      if (scale < 0.999) node.style.transform = "scale(" + scale.toFixed(4) + ")";
+    });
+  }
+
   function exprRender() {
     if (!state.expr.order.length) exprNewOrder();
-    var task = window.TASKS[state.expr.order[state.expr.pos % state.expr.order.length]];
+    var task = state.expr.pool[state.expr.order[state.expr.pos % state.expr.order.length]];
     state.expr.answered = false;
 
     var taskEl = byId("exprTask");
     taskEl.innerHTML = "";
-    appendRich(taskEl, task.q);
+    var wrong;
+
+    if (task.kind === "curated") {
+      appendRich(taskEl, task.q);
+      wrong = task.wrong;
+    } else {
+      var prompt = document.createElement("p");
+      prompt.className = "quiz__prompt";
+      prompt.textContent = "Какая формула соответствует:";
+      var name = document.createElement("div");
+      name.className = "quiz__task";
+      name.textContent = "«" + task.prompt + "»";
+      taskEl.appendChild(prompt);
+      taskEl.appendChild(name);
+      wrong = exprDistractors(task);
+    }
+
     byId("exprFeedback").textContent = "";
     byId("exprFeedback").className = "feedback";
     exprMeta();
 
-    var choices = shuffleArr([{ ok: true, text: task.a }].concat(
-      task.wrong.map(function (w) { return { ok: false, text: w }; })
+    var choices = shuffleArr([{ ok: true, text: task.answer }].concat(
+      wrong.map(function (w) { return { ok: false, text: w }; })
     ));
     renderOptions(byId("exprOptions"), choices, function (btn, c) {
       var span = document.createElement("span");
       renderMathInline(span, c.text);
       btn.appendChild(span);
     }, function (btn, c) { exprAnswer(btn, c.ok); });
+    window.requestAnimationFrame(function () { fitOptions(byId("exprOptions")); });
   }
   function exprMeta() {
     var s = state.stats;
-    byId("exprMeta").textContent = "Задача " + (state.expr.pos + 1) + " из " + window.TASKS.length +
+    var total = state.expr.pool ? state.expr.pool.length : window.TASKS.length;
+    byId("exprMeta").textContent = "Задача " + (state.expr.pos + 1) + " из " + total +
       " · Верно " + s.exprOk + " · Ошибок " + s.exprBad;
     byId("exprReset").disabled = (s.exprOk + s.exprBad) === 0;
   }
@@ -542,6 +604,7 @@
       window.clearTimeout(resizeTimer);
       resizeTimer = window.setTimeout(function () {
         fitAllWithin(document);
+        if (state.mode === "expr") fitOptions(byId("exprOptions"));
       }, 150);
     });
     if (document.fonts && document.fonts.ready) {
