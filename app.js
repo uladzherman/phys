@@ -154,7 +154,8 @@
         sym.className = "sym";
         renderMathInline(sym, v.s);
         li.appendChild(sym);
-        li.appendChild(document.createTextNode(" — " + v.n));
+        li.appendChild(document.createTextNode(" — "));
+        appendRich(li, v.n);
         list.appendChild(li);
       });
       meta.appendChild(list);
