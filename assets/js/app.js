@@ -437,8 +437,19 @@
 
   /* ---------- Режим «Выражения» ---------- */
   function exprNewOrder() {
-    state.expr.pool = window.TASKS;
-    state.expr.order = shuffleArr(state.expr.pool.map(function (_, i) { return i; }));
+    // Ручные задачи + авто-задачи по всем карточкам (кроме тех, где выразить нельзя).
+    var auto = (window.ExprSolver && window.ExprSolver.buildTasks)
+      ? window.ExprSolver.buildTasks(window.CARDS).tasks
+      : [];
+    var all = window.TASKS.concat(auto);
+    var seen = {}, pool = [];
+    all.forEach(function (t) {
+      if (!t || !t.q || seen[t.q]) return;
+      seen[t.q] = 1;
+      pool.push(t);
+    });
+    state.expr.pool = pool;
+    state.expr.order = shuffleArr(pool.map(function (_, i) { return i; }));
     state.expr.pos = 0;
   }
   function exprRender() {
@@ -469,7 +480,7 @@
       function (btn, c) { exprAnswer(btn, c.ok); });
   }
   function exprMeta() {
-    var s = state.stats, total = window.TASKS.length;
+    var s = state.stats, total = state.expr.pool ? state.expr.pool.length : window.TASKS.length;
     byId("exprMeta").textContent = "Задача " + (state.expr.pos + 1) + " из " + total +
       " · Верно " + s.exprOk + " · Ошибок " + s.exprBad;
     byId("exprReset").disabled = (s.exprOk + s.exprBad) === 0;
